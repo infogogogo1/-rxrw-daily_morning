@@ -67,11 +67,11 @@ def get_birthday():
     next = next.replace(year=next.year + 1)
   return (next - today).days
 
-def get_words():
-  words = requests.get("https://api.shadiao.pro/chp")
-  if words.status_code != 200:
-    return get_words()
-  return words.json()['data']['text']
+# def get_words():
+#   words = requests.get("https://api.shadiao.pro/chp")
+#   if words.status_code != 200:
+#     return get_words()
+#   return words.json()['data']['text']
 
 def get_random_color():
   return "#%06x" % random.randint(0, 0xFFFFFF)
@@ -80,16 +80,15 @@ client = WeChatClient(app_id, app_secret)
 
 wm = WeChatMessage(client)
 wea, temperature, highest, lowest = get_weather()
-data = {"city":{"value":city,"color":get_random_color()},
-        "date":{"value":today.strftime('%Y年%m月%d日')+' '+new_week_day,"color":get_random_color()},  # 日期添加周几,距离周末的天数
-        "write":{"value":"距离周末还有：%s天！" % days_val },
-        "weather":{"value":wea,"color":get_random_color()},
-        "temperature":{"value":temperature,"color":get_random_color()},
-        "love_days":{"value":get_count(),"color":get_random_color()},
-        "birthday_left":{"value":get_birthday(),"color":get_random_color()},
-        "words":{"value":get_words(),"color":get_random_color()},
-        "highest": {"value":highest,"color":get_random_color()},
-        "lowest":{"value":lowest, "color":get_random_color()}}
+data = {"city":{"value":city},
+        "date":{"value":today.strftime('%Y年%m月%d日')+' '+new_week_day},  # 日期添加周几,距离周末的天数
+        "write":{"value":"距离周末还有：%s天！" % days_val,"color":get_random_color()},
+        "weather":{"value":wea},
+        "temperature":{"value":temperature},
+        "love_days":{"value":get_count()},
+        "birthday_left":{"value":get_birthday()},
+        "highest": {"value":highest},
+        "lowest":{"value":lowest}}
 count = 0
 for user_id in user_ids:
   res = wm.send_template(user_id, template_id, data)
