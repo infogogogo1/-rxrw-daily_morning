@@ -1,4 +1,13 @@
-from datetime import date, datetime
+'''
+# -*- coding: utf-8 -*-
+# @Time : 2022/8/25 15:03
+# @Author : Haolin
+# @email : cuihaolin@xinzhengjinke.com
+# @File : test.py
+# @Software: PyCharm
+'''
+
+from datetime import date, datetime, timedelta
 import math
 from wechatpy import WeChatClient
 from wechatpy.client.api import WeChatMessage, WeChatTemplate
@@ -6,17 +15,7 @@ import requests
 import os
 import random
 
-today = datetime.now()
-start_date = os.environ['START_DATE']
-city = os.environ['CITY']
-birthday = os.environ['BIRTHDAY']
-
-app_id = os.environ["APP_ID"]
-app_secret = os.environ["APP_SECRET"]
-
-user_id = os.environ["USER_ID"]
-template_id = os.environ["TEMPLATE_ID"]
-
+today = datetime.now() + timedelta(hours=8)
 
 # 新增周天判断
 week_day = datetime.today().weekday()
@@ -28,12 +27,22 @@ if days_val>=0:
 else:
     days_val = '0'
 
+start_date = os.environ['START_DATE']
+city = os.environ['CITY']
+birthday = os.environ['BIRTHDAY']
+
+app_id = os.environ["APP_ID"]
+app_secret = os.environ["APP_SECRET"]
+
+user_ids = os.environ["USER_ID"].split("\n")
+template_id = os.environ["TEMPLATE_ID"]
+
 
 def get_weather():
   url = "http://autodev.openspeech.cn/csp/api/v2.1/weather?openId=aiuicus&clientType=android&sign=android&city=" + city
   res = requests.get(url).json()
   weather = res['data']['list'][0]
-  # 测试增加天气判断带祝福语,增加'°C'
+# 测试增加天气判断带祝福语,增加'°C'
   if weather['weather'] == '多云':
       weather['weather'] = '多云 (今天天上会有很好看的云朵噢！！)'
   elif weather['weather'] == '晴':
@@ -67,11 +76,10 @@ def get_words():
 def get_random_color():
   return "#%06x" % random.randint(0, 0xFFFFFF)
 
-
 client = WeChatClient(app_id, app_secret)
 
 wm = WeChatMessage(client)
-wea, temperature = get_weather()
+wea, temperature, highest, lowest = get_weather()
 data = {"city":{"value":city,"color":get_random_color()},
         "date":{"value":today.strftime('%Y年%m月%d日')+' '+new_week_day,"color":get_random_color()},  # 日期添加周几,距离周末的天数
         "write":{"value":"距离周末还有：%s天！" % days_val },
@@ -82,3 +90,9 @@ data = {"city":{"value":city,"color":get_random_color()},
         "words":{"value":get_words(),"color":get_random_color()},
         "highest": {"value":highest,"color":get_random_color()},
         "lowest":{"value":lowest, "color":get_random_color()}}
+count = 0
+for user_id in user_ids:
+  res = wm.send_template(user_id, template_id, data)
+  count+=1
+
+print("发送了" + str(count) + "条消息")
